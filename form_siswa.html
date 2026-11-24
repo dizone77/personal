@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Data Siswa – Upload Foto</title>
+  <style>
+    :root {
+      --bg: #0f172a; /* slate-900 */
+      --card: #111827; /* gray-900 */
+      --muted: #9ca3af; /* gray-400 */
+      --text: #e5e7eb; /* gray-200 */
+      --accent: #22d3ee; /* cyan-400 */
+      --accent-2: #38bdf8; /* sky-400 */
+      --ok: #10b981; /* emerald-500 */
+      --warn: #f59e0b; /* amber-500 */
+      --danger: #ef4444; /* red-500 */
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 80% -10%, rgba(56,189,248,.08), transparent 60%),
+                  radial-gradient(1000px 700px at -10% 110%, rgba(34,211,238,.10), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(720px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      border: 1px solid rgba(148,163,184,.15);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      padding: 28px;
+      backdrop-filter: blur(6px);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.2rem, 1.2rem + 1.5vw, 2rem);
+      letter-spacing: .3px;
+    }
+    p.sub {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: .975rem;
+    }
+
+    form { display: grid; gap: 16px; }
+
+    .field { display: grid; gap: 8px; }
+    label { font-weight: 600; font-size: .95rem; }
+    input[type="text"], select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.25);
+      background: #0b1220;
+      color: var(--text);
+      outline: none;
+    }
+    input[type="text"]:focus, select:focus { border-color: var(--accent-2); box-shadow: 0 0 0 4px rgba(56,189,248,.15); }
+
+    .uploader {
+      border: 2px dashed rgba(148,163,184,.35);
+      border-radius: 16px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 16px;
+      align-items: center;
+      background: #0b1220;
+    }
+    .uploader.dragover { border-color: var(--accent); background: rgba(34,211,238,.06); }
+
+    .preview {
+      width: 120px; height: 120px;
+      border-radius: 14px;
+      background: #0a0f1e;
+      border: 1px solid rgba(148,163,184,.2);
+      display: grid; place-items: center; overflow: hidden;
+      font-size: .85rem; color: var(--muted);
+    }
+    .preview img { max-width: 100%; max-height: 100%; display: block; }
+
+    .upload-col { display: grid; gap: 10px; }
+    .upload-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+      appearance: none; border: none; cursor: pointer;
+      padding: 10px 14px; border-radius: 12px; font-weight: 600;
+      color: #0b1220; background: var(--accent-2);
+      transition: transform .04s ease, filter .2s ease;
+    }
+    .btn:hover { filter: brightness(1.06); }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid rgba(148,163,184,.25); }
+    .hint { color: var(--muted); font-size: .9rem; }
+    .error { color: var(--danger); font-size: .9rem; }
+    .ok { color: var(--ok); font-size: .9rem; }
+
+    .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 6px; }
+
+    @media (max-width: 600px) {
+      .uploader { grid-template-columns: 1fr; }
+      .preview { width: 100%; height: 220px; }
+      .actions { justify-content: stretch; }
+      .actions .btn { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-labelledby="title">
+    <h1 id="title">Form Data Siswa</h1>
+    <p class="sub">Isi nama, kelas, dan unggah foto. Gambar akan dipratinjau sebelum dikirim.</p>
+
+    <form id="form" action="endpoint" method="post" enctype="multipart/form-data" novalidate>
+      <div class="field">
+        <label for="nama">Nama Lengkap</label>
+        <input id="nama" name="nama" type="text" placeholder="Mis. Disdis Yuliawan" required aria-required="true" />
+      </div>
+
+      <div class="field">
+        <label for="kelas">Kelas</label>
+        <select id="kelas" name="kelas" required aria-required="true">
+          <option value="" selected disabled>Pilih kelas…</option>
+          <option>X-4</option>
+          <option>XI-4</option>
+        
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="foto">Upload Foto</label>
+        <div id="uploader" class="uploader" tabindex="0" aria-label="Drop area untuk upload foto">
+          <div class="preview" id="preview">Pratinjau</div>
+          <div class="upload-col">
+            <div class="upload-actions">
+              <input id="foto" name="foto" type="file" accept="image/*" hidden />
+              <button class="btn" type="button" id="chooseBtn">Pilih Gambar</button>
+              <button class="btn btn-outline" type="button" id="clearBtn" aria-label="Hapus gambar">Hapus</button>
+            </div>
+            <div class="hint">Format: JPG/PNG/WebP. Maks 2 MB.</div>
+            <div class="error" id="errorMsg" aria-live="polite" style="display:none"></div>
+            <div class="ok" id="okMsg" aria-live="polite" style="display:none"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-outline" type="reset">Reset</button>
+        <button class="btn" type="submit">Kirim</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const inputFile = document.getElementById('foto');
+    const preview = document.getElementById('preview');
+    const uploader = document.getElementById('uploader');
+    const chooseBtn = document.getElementById('chooseBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    const okMsg = document.getElementById('okMsg');
+    const MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+
+    function resetMessages() {
+      errorMsg.style.display = 'none';
+      okMsg.style.display = 'none';
+      errorMsg.textContent = '';
+      okMsg.textContent = '';
+    }
+
+    function setPreview(file) {
+      resetMessages();
+      if (!file) {
+        preview.innerHTML = 'Pratinjau';
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        errorMsg.textContent = 'File harus berupa gambar.';
+        errorMsg.style.display = 'block';
+        inputFile.value = '';
+        preview.innerHTML = 'Pratinjau';
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        errorMsg.textContent = 'Ukuran gambar melebihi 2 MB.';
+        errorMsg.style.display = 'block';
+        inputFile.value = '';
+        preview.innerHTML = 'Pratinjau';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.alt = 'Pratinjau foto terpilih';
+        preview.innerHTML = '';
+        preview.appendChild(img);
+        okMsg.textContent = `Gambar siap diunggah: ${file.name} (${Math.round(file.size/1024)} KB)`;
+        okMsg.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    chooseBtn.addEventListener('click', () => inputFile.click());
+    clearBtn.addEventListener('click', () => {
+      inputFile.value = '';
+      preview.innerHTML = 'Pratinjau';
+      resetMessages();
+    });
+
+    inputFile.addEventListener('change', (e) => setPreview(e.target.files[0]));
+
+    // Drag & drop
+    ;['dragenter','dragover'].forEach(evt => {
+      uploader.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); uploader.classList.add('dragover'); });
+    });
+    ;['dragleave','drop'].forEach(evt => {
+      uploader.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); uploader.classList.remove('dragover'); });
+    });
+    uploader.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) {
+        inputFile.files = e.dataTransfer.files; // sync ke input
+        setPreview(file);
+      }
+    });
+
+    // Validasi submit
+    form.addEventListener('submit', (e) => {
+      resetMessages();
+      if (!form.nama.value.trim()) {
+        errorMsg.textContent = 'Nama wajib diisi.';
+        errorMsg.style.display = 'block';
+        e.preventDefault();
+        return;
+      }
+      if (!form.kelas.value) {
+        errorMsg.textContent = 'Silakan pilih kelas.';
+        errorMsg.style.display = 'block';
+        e.preventDefault();
+        return;
+      }
+      if (!inputFile.files.length) {
+        errorMsg.textContent = 'Silakan unggah foto.';
+        errorMsg.style.display = 'block';
+        e.preventDefault();
+        return;
+      }
+      // Di demo ini, kita hanya mencegah submit agar tidak reload
+      e.preventDefault();
+      okMsg.textContent = 'Form valid. Di proyek Anda, ganti action="#" ke endpoint server untuk memproses file (multipart/form-data).';
+      okMsg.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
